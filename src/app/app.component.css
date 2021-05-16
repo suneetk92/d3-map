@@ -1,5 +1,5 @@
 .country {
-  stroke: context-fill;
+  stroke: black;
   fill-opacity: 0.3;
 }
 
@@ -24,3 +24,4 @@
   font-size: 34px;
   font-weight: bold;
 }
+
