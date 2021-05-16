@@ -21,7 +21,9 @@
     "rxjs": "~6.6.0",
     "tslib": "^2.1.0",
     "zone.js": "~0.11.4",
-    "d3": "^6.7.0"
+    "d3-geo": "^2.0.1",
+    "d3-scale-chromatic": "^2.0.0",
+    "d3-selection": "^2.0.0"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "~12.0.0",
