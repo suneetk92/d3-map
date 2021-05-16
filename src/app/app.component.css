@@ -1,0 +1,8 @@
+.country {
+  stroke: context-fill;
+  color: red;
+}
+
+.stars {
+  background-image: url("src/assets/stars.jpg");
+}
