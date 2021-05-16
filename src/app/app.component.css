@@ -1,8 +1,26 @@
 .country {
   stroke: context-fill;
-  color: red;
+  fill-opacity: 0.3;
 }
 
 .stars {
   background-image: url("src/assets/stars.jpg");
+}
+
+.highlighted {
+  fill-opacity: 0.7;
+}
+
+.clicked {
+  fill-opacity: 1;
+}
+
+.map {
+  fill: #fbad41;
+}
+
+.text {
+  fill: white;
+  font-size: 34px;
+  font-weight: bold;
 }

@@ -3,26 +3,29 @@ import {
   ElementRef,
   HostListener,
   OnInit,
-  ViewChild,
+  ViewEncapsulation,
 } from '@angular/core';
 import * as d3 from 'd3';
 import { GeoProjection, Selection } from 'd3';
 import { MapService } from './map.service';
+import { Feature } from 'geojson';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
+  encapsulation: ViewEncapsulation.None,
 })
 export class AppComponent implements OnInit {
-  mapChart: Selection<SVGPathElement, unknown, HTMLElement, any> | undefined;
-
+  mapChart!: Selection<SVGElement, void, HTMLElement, any>;
   geoProjection: GeoProjection;
 
   height: number;
   width: number;
 
   visReady: boolean;
+  highlighted: string | undefined | null;
+  clicked: string | undefined | null;
 
   constructor(private el: ElementRef, private mapService: MapService) {
     this.geoProjection = d3.geoOrthographic();
@@ -45,31 +48,63 @@ export class AppComponent implements OnInit {
       .attr('r', 249.5)
       .attr('fill', '#8ab4f8');
 
-    d3.geoCircle();
+    const countriesGroup: Selection<SVGGElement, void, HTMLElement, any> =
+      this.mapChart.append('g').attr('class', 'map');
 
-    const countriesGroup = this.mapChart.append('g');
+    let xAngle = 285;
+
     let geoPath = d3.geoPath(
-      this.geoProjection.translate([this.width / 2, this.height / 2])
+      this.geoProjection
+        .translate([this.width / 2, this.height / 2])
+        .rotate([xAngle, 0])
     );
 
     this.mapService.fetchCountryGeoJSON().subscribe((data) => {
-      let x = 0;
+      let interval: any;
 
-      let globe = countriesGroup
-        .selectAll('path')
-        .data(data.features)
-        .enter()
-        .append('path')
-        .attr('fill', (d) => AppComponent.findColor(d.id as string))
-        .attr('data', (d) => d.id as string)
-        .on('mouseover', (d, data) => {
-          console.log(data.id);
-        })
-        .attr('d', geoPath);
+      const text: Selection<SVGTextElement, void, HTMLElement, any> =
+        this.mapChart
+          .append('text')
+          .attr('x', this.width / 2)
+          .attr('y', this.height - 40)
+          .attr('class', 'text');
 
-      setInterval(() => {
-        x = (x + 0.25) % 360;
-        this.geoProjection.rotate([x, 0]);
+      let globe: Selection<SVGPathElement, Feature, SVGGElement, unknown> =
+        countriesGroup
+          .selectAll('path')
+          .data(data.features)
+          .enter()
+          .append('path')
+          .attr('class', 'country')
+          .attr('data', (d) => d.id as string)
+          .on('mouseover', (d, data) => {
+            globe.classed('highlighted', (d) => (d as any).id === data.id);
+          })
+          .on('mouseout', () => {
+            globe.classed('highlighted', false);
+          })
+          .on('click', (d, data) => {
+            if (data.id !== this.clicked) {
+              this.clicked = data.id as string;
+              clearInterval(interval);
+              globe.classed('clicked', (d) => d.id === data.id);
+              text.text(data.id as string).attr('dx', '-35px');
+            } else {
+              this.clicked = null;
+              interval = setInterval(() => {
+                xAngle = (xAngle + 0.25) % 360;
+                this.geoProjection.rotate([xAngle, 0]);
+                globe.attr('d', geoPath);
+              }, 100);
+              globe.classed('clicked', false);
+              text.text(null);
+            }
+          })
+          .attr('d', geoPath);
+
+      interval = setInterval(() => {
+        xAngle = (xAngle + 0.25) % 360;
+        this.geoProjection.rotate([xAngle, 0]);
         globe.attr('d', geoPath);
       }, 100);
     });
